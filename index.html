@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thongsuk Management</title>
+    <link rel="icon" href="img/icon/THONGSUK_01.png" type="image/x-icon">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.6));
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .navbar {
+            width: 100%;
+            background-color: #333;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            z-index: 10;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(4, 120px);
+            grid-gap: 20px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .menu-button {
+            text-decoration: none;
+            width: 100px;
+            height: 100px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .menu-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .menu-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-button span {
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        .menu-button img {
+            width: 40px;
+            height: 40px;
+        }
+
+        .content-wrapper {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-top: 60px; /* Avoid overlap with fixed navbar */
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar"></div>
+    <div class="content-wrapper">
+        <div class="container">
+            <a href="Batch_Payment.html" class="menu-button">
+                <img src="img/money.png" alt="Icon 1">
+                <span>ส่งเงิน</span>
+            </a>
+            <a href="Send_items.html" class="menu-button">
+                <img src="img/safebox.png" alt="Icon 2">
+                <span>ส่งของ</span>
+            </a>
+            <a href="Attendance_System.html" class="menu-button">
+                <img src="img/file.png" alt="Icon 3">
+                <span>เช็คชื่อ</span>
+            </a>
+            <a href="set_Airdrop.html" class="menu-button">
+                <img src="img/airdrop.png" alt="Icon 4">
+                <span>Set Airdrop</span>
+            </a>
+            <a href="finance.html" class="menu-button">
+                <img src="img/point-of-service.png" alt="Icon 5">
+                <span>รายรับรายจ่าย</span>
+            </a>
+            <a href="Items_Management.html" class="menu-button">
+                <img src="img/inventory.png" alt="Icon 6">
+                <span>Inventory</span>
+            </a>
+            <a href="member.html" class="menu-button">
+                <img src="img/team.png" alt="Icon 7">
+                <span>Member</span>
+            </a>
+            <a href="Item_Requisition.html" class="menu-button">
+                <img src="img/out.png" alt="Icon 8">
+                <span>เบิกของ</span>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

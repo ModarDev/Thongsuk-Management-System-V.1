@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Notification</title>
+    <link rel="icon" href="img/airdrop.png" type="image/x-icon">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        input, select, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Payment Notification</h2>
+        <form id="paymentForm">
+            <input type="text" id="senderName" placeholder="Sender's Name" required>
+            <input type="date" id="paymentDate" required>
+            <input type="number" id="amount" placeholder="Amount" required>
+            <textarea id="details" placeholder="Details" rows="4"></textarea>
+            <select id="receiver" required>
+                <option value="" disabled selected>Select Receiver</option>
+                <option value="Cartier Thongsuk">Cartier Thongsuk</option>
+                <option value="Receiver 2">Receiver 2</option>
+                <option value="Receiver 3">Receiver 3</option>
+            </select>
+            <button type="submit">Submit Payment</button>
+        </form>
+        <p id="status" style="text-align: center; color: green;"></p>
+    </div>
+
+    <script>
+        const webhookUrl = "https://discordapp.com/api/webhooks/1167939751953825872/--C09j9dRMMFr4zxvoBHpbThtAFTZCmy-qnRnjPL-Ava5ns1TsXimYk2rFHSUgKs7dg8"; // ใส่ URL Webhook ของคุณที่นี่
+
+        document.getElementById('paymentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const senderName = document.getElementById('senderName').value;
+            const paymentDate = document.getElementById('paymentDate').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const details = document.getElementById('details').value;
+            const receiver = document.getElementById('receiver').value;
+
+            const message = {
+                content: `**New Payment Notification**\n\n**Sender:** ${senderName}\n**Date:** ${paymentDate}\n**Amount:** $${amount.toFixed(2)}\n**Details:** ${details}\n**Receiver:** ${receiver}`
+            };
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(message),
+                });
+
+                if (response.ok) {
+                    document.getElementById('status').textContent = 'Payment notification sent successfully!';
+                    document.getElementById('paymentForm').reset();
+                } else {
+                    document.getElementById('status').textContent = 'Failed to send payment notification.';
+                }
+            } catch (error) {
+                document.getElementById('status').textContent = 'Error occurred while sending payment notification.';
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+</html>

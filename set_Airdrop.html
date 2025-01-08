@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set AirDrop</title>
+    <link rel="icon" href="img/icon/airdrop.png" type="image/x-icon">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        input, select, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        .entry {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #f4f4f4;
+        }
+
+        .history {
+            margin-top: 30px;
+            border-top: 2px solid #ddd;
+            padding-top: 10px;
+        }
+
+        .history ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .history li {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        .linkButton {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+
+        .linkButton:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="linkButton">Go to Another Page</a>
+    <div class="container">
+        <h2>Set AirDrop System</h2>
+        <div id="entries">
+            <div class="entry">
+                <select class="itemName" required>
+                    <option value="" disabled selected>Select Item</option>
+                    <option value="Painkiller">Painkiller</option>
+                    <option value="Armor">Armor</option>
+                    <option value="Aed">Aed</option>
+                    <option value="Painkiller Gang">Painkiller Gang</option>
+                </select>
+                <input type="number" placeholder="Quantity" class="quantity" required>
+                <input type="text" placeholder="Name of Requester" class="requesterName" required>
+                <textarea placeholder="Details" class="details" rows="4"></textarea>
+            </div>
+        </div>
+        <button id="addEntry">Add New Requisition</button>
+        <button id="submitAll">Submit All Requisitions</button>
+        <button id="clearHistory" style="background-color: #dc3545; color: white;">Clear History</button>
+        <p id="status" style="text-align: center; color: green;"></p>
+
+        <div class="history" id="history">
+            <h3>Requisition History</h3>
+            <ul id="requisitionHistoryList"></ul>
+        </div>
+    </div>
+
+    <script>
+        const webhookUrl = "https://discordapp.com/api/webhooks/1326607944032456807/PK5NKm7ELafZzIJi9USOpE_Zr4RtfkEzKNwZx9F0PYfd_B5fGH2FLiizfapPG5PyqJip"; // Webhook URL
+        const entriesDiv = document.getElementById('entries');
+        const addEntryButton = document.getElementById('addEntry');
+        const submitAllButton = document.getElementById('submitAll');
+        const statusMessage = document.getElementById('status');
+        const requisitionHistoryList = document.getElementById('requisitionHistoryList');
+        const clearHistoryButton = document.getElementById('clearHistory');
+
+        // Load requisition history from localStorage
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('requisitionHistory')) || [];
+            requisitionHistoryList.innerHTML = '';
+            history.forEach(entry => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <strong>Item:</strong> ${entry.itemName} <br>
+                    <strong>Quantity:</strong> ${entry.quantity} <br>
+                    <strong>Requester:</strong> ${entry.requesterName} <br>
+                    <strong>Details:</strong> ${entry.details}
+                `;
+                requisitionHistoryList.appendChild(li);
+            });
+        }
+
+        // Add new requisition entry
+        addEntryButton.addEventListener('click', () => {
+            const newEntry = document.createElement('div');
+            newEntry.classList.add('entry');
+            newEntry.innerHTML = `
+                <select class="itemName" required>
+                    <option value="" disabled selected>Select Item</option>
+                    <option value="Painkiller">Painkiller</option>
+                    <option value="Armor">Armor</option>
+                    <option value="Aed">Aed</option>
+                    <option value="Painkiller Gang">Painkiller Gang</option>
+                </select>
+                <input type="number" placeholder="Quantity" class="quantity" required>
+                <input type="text" placeholder="Name of Requester" class="requesterName" required>
+                <textarea placeholder="Details" class="details" rows="4"></textarea>
+            `;
+            entriesDiv.appendChild(newEntry);
+        });
+
+        // Submit all requisitions
+        submitAllButton.addEventListener('click', async () => {
+            const entries = document.querySelectorAll('.entry');
+            const messages = [];
+            const history = JSON.parse(localStorage.getItem('requisitionHistory')) || [];
+
+            entries.forEach(entry => {
+                const itemName = entry.querySelector('.itemName').value;
+                const quantity = parseInt(entry.querySelector('.quantity').value);
+                const requesterName = entry.querySelector('.requesterName').value;
+                const details = entry.querySelector('.details').value;
+
+                if (itemName && !isNaN(quantity) && requesterName) {
+                    messages.push(`**Item:** ${itemName}\n**Quantity:** ${quantity}\n**Requester:** ${requesterName}\n**Details:** ${details}`);
+
+                    history.push({ itemName, quantity, requesterName, details });
+                }
+            });
+
+            if (messages.length === 0) {
+                statusMessage.textContent = 'No valid entries to submit!';
+                return;
+            }
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ content: messages.join('\n\n---\n\n') }),
+                });
+
+                if (response.ok) {
+                    localStorage.setItem('requisitionHistory', JSON.stringify(history));
+                    statusMessage.textContent = 'All requisitions sent successfully!';
+                    entriesDiv.innerHTML = '';
+                    addEntryButton.click();
+                    loadHistory();
+                } else {
+                    statusMessage.textContent = 'Failed to send requisitions.';
+                }
+            } catch (error) {
+                statusMessage.textContent = 'Error occurred while sending requisitions.';
+                console.error(error);
+            }
+        });
+
+        // Clear all requisition history
+        clearHistoryButton.addEventListener('click', () => {
+            // Remove all entries from the requisition history
+            localStorage.removeItem('requisitionHistory');
+            requisitionHistoryList.innerHTML = '';
+            statusMessage.textContent = 'History cleared successfully!';
+        });
+
+        window.onload = loadHistory;
+    </script>
+</body>
+</html>

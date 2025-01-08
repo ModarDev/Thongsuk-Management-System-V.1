@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Check</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            margin-top: 20px;
+        }
+        .entry {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, select {
+            width: calc(100% - 20px);
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .add-entry {
+            background-color: #28a745;
+        }
+        .add-entry:hover {
+            background-color: #218838;
+        }
+        .history {
+            margin-top: 20px;
+        }
+        .history-item {
+            background: #f9f9f9;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .linkButton {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+
+        .linkButton:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="linkButton">Go to Another Page</a>
+    <div class="container">
+        <h1>Attendance Check System</h1>
+        <form id="attendanceForm">
+            <div id="entries">
+                <div class="entry">
+                    <label>
+                        Name: <input type="text" name="name[]" required>
+                    </label>
+                    <label>
+                        Date: <input type="date" id="date" name="date" required>
+                    </label>
+                    <label>
+                        Activity:
+                        <select id="activity" name="activity" required>
+                            <option value="">-- Select Activity --</option>
+                            <option value="AirDrop Time 16.00">AirDrop Time 16.00</option>
+                            <option value="AirDrop Time 20.00">AirDrop Time 20.00</option>
+                            <option value="AirDrop Time 22.00">AirDrop Time 22.00</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+            <button type="button" class="add-entry" onclick="addEntry()">Add More Participants</button>
+            <button type="submit">Submit All</button>
+        </form>
+
+        <div class="history">
+            <h2>History</h2>
+            <div id="historyList"></div>
+            <button type="button" onclick="clearHistory()">Clear History</button>
+        </div>
+    </div>
+
+    <script>
+        function addEntry() {
+            const entry = document.createElement('div');
+            entry.classList.add('entry');
+            entry.innerHTML = `
+                <label>
+                    Name: <input type="text" name="name[]" required>
+                </label>
+            `;
+            document.getElementById('entries').appendChild(entry);
+        }
+
+        function appendToHistory(name, date, activity) {
+            const historyList = document.getElementById('historyList');
+            const historyItem = document.createElement('div');
+            historyItem.classList.add('history-item');
+            historyItem.textContent = `Name: ${name}, Date: ${date}, Activity: ${activity}`;
+            historyList.appendChild(historyItem);
+        }
+
+        function saveToLocalStorage(name, date, activity) {
+            const history = JSON.parse(localStorage.getItem('attendanceHistory')) || [];
+            history.push({ name, date, activity });
+            localStorage.setItem('attendanceHistory', JSON.stringify(history));
+        }
+
+        function loadFromLocalStorage() {
+            const history = JSON.parse(localStorage.getItem('attendanceHistory')) || [];
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = '';
+            history.forEach(entry => {
+                appendToHistory(entry.name, entry.date, entry.activity);
+            });
+        }
+
+        function clearHistory() {
+            localStorage.removeItem('attendanceHistory');
+            document.getElementById('historyList').innerHTML = '';
+        }
+
+        document.getElementById('attendanceForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const names = formData.getAll('name[]');
+            const date = document.getElementById('date').value;
+            const activity = document.getElementById('activity').value;
+
+            if (!date || !activity) {
+                alert('Please fill in the date and activity.');
+                return;
+            }
+
+            const webhookUrl = "https://discordapp.com/api/webhooks/1326608267555770438/BETcoOTfamadAhwKSz1n05sSugu-ntQr9VO6V60TUXaOTkdiCPNP6mAVMEuk8lij9rdP"; // Replace with your webhook URL
+
+            for (const name of names) {
+                if (name.trim() === '') continue;
+                appendToHistory(name, date, activity);
+                saveToLocalStorage(name, date, activity);
+                await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: `Name: ${name}\nDate: ${date}\nActivity: ${activity}`
+                    })
+                });
+            }
+
+            alert('Entries sent to Discord and saved to history!');
+            event.target.reset();
+            document.getElementById('entries').innerHTML = `
+                <div class="entry">
+                    <label>
+                        Name: <input type="text" name="name[]" required>
+                    </label>
+                </div>
+            `;
+        });
+
+        // Load previous history and form values on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFromLocalStorage();
+        });
+    </script>
+</body>
+</html>

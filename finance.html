@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Income and Expense Tracker</title>
+    <link rel="icon" href="img/icon/budget.png" type="image/x-icon">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+
+        header {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table th, table td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        table th {
+            background-color: #007BFF;
+            color: white;
+        }
+
+        .summary {
+            margin-top: 20px;
+            font-size: 18px;
+            text-align: right;
+        }
+
+        .income {
+            color: green;
+        }
+
+        .expense {
+            color: red;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            margin: 0 10px;
+            padding: 10px;
+        }
+              /* ปุ่มลิงค์ที่มุมบนซ้าย */
+              .linkButton {
+            position: fixed;
+            top: 10px;
+            left: 15px;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+
+        .linkButton:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="linkButton">Go to Another Page</a>
+    
+
+    <div class="container">
+        <form id="transactionForm">
+            <input type="text" id="name" placeholder="Your Name" required>
+            <input type="text" id="description" placeholder="Description" required>
+            <input type="number" id="amount" placeholder="Amount" required>
+            <select id="type">
+                <option value="income">Income</option>
+                <option value="expense">Expense</option>
+            </select>
+            <button type="submit">Add Transaction</button>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Type</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="transactionTable">
+                <!-- Transactions will be dynamically added here -->
+            </tbody>
+        </table>
+
+        <div class="summary">
+            Total Income: <span id="totalIncome" class="income">0</span><br>
+            Total Expense: <span id="totalExpense" class="expense">0</span><br>
+            Net Balance: <span id="netBalance">0</span>
+        </div>
+
+        <button id="saveButton">Save Summary</button>
+    </div>
+
+    <div class="modal" id="summaryModal">
+        <div class="modal-content">
+            <h2>Summary</h2>
+            <p>Total Income: <span id="modalIncome" class="income">0</span></p>
+            <p>Total Expense: <span id="modalExpense" class="expense">0</span></p>
+            <p>Net Balance: <span id="modalBalance">0</span></p>
+            <div class="modal-buttons">
+                <button id="finishButton">Finish</button>
+                <button id="editButton">Edit</button>
+                <button id="cancelButton">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const webhookUrl = "https://discordapp.com/api/webhooks/1167994711441686568/ov2rxjl7UQz1gDPfbP3SOvf8OzrkrzvSDXK0FxEk5cxie_ZT5RtxmgBXUy2SmW35GaCc"; // Replace with your Discord Webhook URL
+
+        const transactionForm = document.getElementById('transactionForm');
+        const transactionTable = document.getElementById('transactionTable');
+        const totalIncome = document.getElementById('totalIncome');
+        const totalExpense = document.getElementById('totalExpense');
+        const netBalance = document.getElementById('netBalance');
+        const saveButton = document.getElementById('saveButton');
+        const summaryModal = document.getElementById('summaryModal');
+        const modalIncome = document.getElementById('modalIncome');
+        const modalExpense = document.getElementById('modalExpense');
+        const modalBalance = document.getElementById('modalBalance');
+        const finishButton = document.getElementById('finishButton');
+        const editButton = document.getElementById('editButton');
+        const cancelButton = document.getElementById('cancelButton');
+
+        let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+
+        // Load transactions from Local Storage
+        updateTable();
+        updateSummary();
+
+        transactionForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const description = document.getElementById('description').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const type = document.getElementById('type').value;
+
+            const transaction = { name, description, amount, type };
+            transactions.push(transaction);
+
+            // Save transactions to Local Storage
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+
+            updateTable();
+            updateSummary();
+            sendToDiscord(name, description, amount, type);  // Send transaction to Discord
+
+            transactionForm.reset();
+        });
+
+        function sendToDiscord(name, description, amount, type) {
+            const message = {
+                content: `**Transaction Added**\n**Name**: ${name}\n**Description**: ${description}\n**Amount**: $${amount.toFixed(2)}\n**Type**: ${type}`
+            };
+
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(message),
+            })
+            .then(response => response.json())
+            .then(data => console.log("Message sent to Discord"))
+            .catch(error => console.error("Error sending to Discord:", error));
+        }
+
+        function updateTable() {
+            transactionTable.innerHTML = '';
+            transactions.forEach((transaction, index) => {
+                const row = document.createElement('tr');
+
+                row.innerHTML = `
+                    <td>${transaction.name}</td>
+                    <td>${transaction.description}</td>
+                    <td>${transaction.amount.toFixed(2)}</td>
+                    <td>${transaction.type}</td>
+                    <td><button onclick="deleteTransaction(${index})">Delete</button></td>
+                `;
+
+                transactionTable.appendChild(row);
+            });
+        }
+
+        function updateSummary() {
+            let income = 0;
+            let expense = 0;
+
+            transactions.forEach(transaction => {
+                if (transaction.type === 'income') {
+                    income += transaction.amount;
+                } else {
+                    expense += transaction.amount;
+                }
+            });
+
+            totalIncome.textContent = income.toFixed(2);
+            totalExpense.textContent = expense.toFixed(2);
+            netBalance.textContent = (income - expense).toFixed(2);
+        }
+
+        function deleteTransaction(index) {
+            transactions.splice(index, 1);
+
+            // Save updated transactions to Local Storage
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+
+            updateTable();
+            updateSummary();
+        }
+
+        saveButton.addEventListener('click', () => {
+            modalIncome.textContent = totalIncome.textContent;
+            modalExpense.textContent = totalExpense.textContent;
+            modalBalance.textContent = netBalance.textContent;
+            summaryModal.style.display = 'flex';
+        });
+
+        finishButton.addEventListener('click', () => {
+            // Clear Local Storage after saving summary
+            localStorage.removeItem('transactions');
+            transactions = [];
+
+            // Clear table and summary
+            updateTable();
+            updateSummary();
+
+            alert('Summary saved successfully! All data has been cleared.');
+
+            // Close modal
+            summaryModal.style.display = 'none';
+        });
+
+        editButton.addEventListener('click', () => {
+            summaryModal.style.display = 'none';
+        });
+
+        cancelButton.addEventListener('click', () => {
+            summaryModal.style.display = 'none';
+        });
+    </script>
+
+</body>
+</html>

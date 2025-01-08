@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch Payment </title>
+    <link rel="icon" href="img/icon/money.png" type="image/x-icon">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        input, select, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        .entry {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #f4f4f4;
+        }
+
+        .history {
+            margin-top: 30px;
+            border-top: 2px solid #ddd;
+            padding-top: 10px;
+        }
+
+        .history ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .history li {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        /* ปุ่มลิงค์ที่มุมบนซ้าย */
+        .linkButton {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+
+        .linkButton:hover {
+            background-color: #218838;
+        }
+
+        /* ปุ่มลบประวัติ */
+        #clearHistory {
+            background-color: #dc3545;
+            color: white;
+            margin-top: 20px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #clearHistory:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <!-- ปุ่มลิงค์ไปหน้าอื่น -->
+    <a href="index.html" class="linkButton">Go to Another Page</a>
+
+    <div class="container">
+        <h2>Batch Payment Notification</h2>
+        <div id="entries">
+            <div class="entry">
+                <input type="text" placeholder="Sender's Name" class="senderName" required>
+                <input type="date" class="paymentDate" required>
+                <input type="number" placeholder="Amount" class="amount" required>
+                <textarea placeholder="Details" class="details" rows="4"></textarea>
+                <select class="receiver" required>
+                    <option value="" disabled selected>Select Receiver</option>
+                    <option value="Receiver 1">Receiver 1</option>
+                    <option value="Receiver 2">Receiver 2</option>
+                    <option value="Receiver 3">Receiver 3</option>
+                </select>
+            </div>
+        </div>
+        <button id="addEntry">Add New Entry</button>
+        <button id="submitAll">Submit All Payments</button>
+        <p id="status" style="text-align: center; color: green;"></p>
+
+        <div class="history" id="history">
+            <h3>Payment History</h3>
+            <ul id="paymentHistoryList"></ul>
+            <!-- ปุ่มลบประวัติ -->
+            <button id="clearHistory">Clear Payment History</button>
+        </div>
+    </div>
+
+    <script>
+        const webhookUrl = "https://discordapp.com/api/webhooks/1326607951816818789/AqqbxR1lyO3lfVssOOmOPIt7_VulcTwpwyKYmhPW8VuIfl5m95CecuE0YF3sC9undpok"; // Webhook URL
+        const entriesDiv = document.getElementById('entries');
+        const addEntryButton = document.getElementById('addEntry');
+        const submitAllButton = document.getElementById('submitAll');
+        const statusMessage = document.getElementById('status');
+        const paymentHistoryList = document.getElementById('paymentHistoryList');
+
+        // ฟังก์ชั่นเพื่อดึงประวัติจาก localStorage
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('paymentHistory')) || [];
+            paymentHistoryList.innerHTML = '';
+            history.forEach(entry => {
+                const li = document.createElement('li');
+                li.innerHTML = ` 
+                    <strong>Sender:</strong> ${entry.senderName} <br>
+                    <strong>Date:</strong> ${entry.paymentDate} <br>
+                    <strong>Amount:</strong> $${entry.amount.toFixed(2)} <br>
+                    <strong>Receiver:</strong> ${entry.receiver} <br>
+                    <strong>Details:</strong> ${entry.details}
+                `;
+                paymentHistoryList.appendChild(li);
+            });
+        }
+
+        // เพิ่มฟิลด์สำหรับเพิ่มรายการใหม่
+        addEntryButton.addEventListener('click', () => {
+            const newEntry = document.createElement('div');
+            newEntry.classList.add('entry');
+            newEntry.innerHTML = ` 
+                <input type="text" placeholder="Sender's Name" class="senderName" required>
+                <input type="date" class="paymentDate" required>
+                <input type="number" placeholder="Amount" class="amount" required>
+                <textarea placeholder="Details" class="details" rows="4"></textarea>
+                <select class="receiver" required>
+                    <option value="" disabled selected>Select Receiver</option>
+                    <option value="Receiver 1">Receiver 1</option>
+                    <option value="Receiver 2">Receiver 2</option>
+                    <option value="Receiver 3">Receiver 3</option>
+                </select>
+            `;
+            entriesDiv.appendChild(newEntry);
+        });
+
+        // ส่งข้อมูลทั้งหมดไปยัง Discord และบันทึกใน localStorage
+        submitAllButton.addEventListener('click', async () => {
+            const entries = document.querySelectorAll('.entry');
+            const messages = [];
+            const history = JSON.parse(localStorage.getItem('paymentHistory')) || [];
+
+            entries.forEach(entry => {
+                const senderName = entry.querySelector('.senderName').value;
+                const paymentDate = entry.querySelector('.paymentDate').value;
+                const amount = parseFloat(entry.querySelector('.amount').value);
+                const details = entry.querySelector('.details').value;
+                const receiver = entry.querySelector('.receiver').value;
+
+                if (senderName && paymentDate && !isNaN(amount) && receiver) {
+                    // สร้างข้อความสำหรับส่งไปยัง Discord
+                    messages.push(`**Sender:** ${senderName}\n**Date:** ${paymentDate}\n**Amount:** $${amount.toFixed(2)}\n**Details:** ${details}\n**Receiver:** ${receiver}`);
+
+                    // บันทึกข้อมูลใน localStorage
+                    history.push({ senderName, paymentDate, amount, details, receiver });
+                }
+            });
+
+            if (messages.length === 0) {
+                statusMessage.textContent = 'No valid entries to submit!';
+                return;
+            }
+
+            try {
+                // ส่งข้อมูลไปยัง Discord
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ content: messages.join('\n\n---\n\n') }),
+                });
+
+                if (response.ok) {
+                    // บันทึกข้อมูลลง localStorage
+                    localStorage.setItem('paymentHistory', JSON.stringify(history));
+                    statusMessage.textContent = 'All payments sent successfully!';
+                    entriesDiv.innerHTML = ''; // ล้างฟอร์มทั้งหมดหลังการส่ง
+                    addEntryButton.click(); // เพิ่มฟอร์มเปล่าใหม่
+                    loadHistory(); // โหลดประวัติใหม่
+                } else {
+                    statusMessage.textContent = 'Failed to send payments.';
+                }
+            } catch (error) {
+                statusMessage.textContent = 'Error occurred while sending payments.';
+                console.error(error);
+            }
+        });
+
+        // ฟังก์ชันลบประวัติ
+        document.getElementById('clearHistory').addEventListener('click', () => {
+            if (confirm("Are you sure you want to clear the payment history?")) {
+                localStorage.removeItem('paymentHistory'); // ลบข้อมูลจาก localStorage
+                loadHistory(); // รีเฟรชประวัติการชำระเงิน
+                statusMessage.textContent = 'Payment history cleared!';
+            }
+        });
+
+        // โหลดประวัติเมื่อหน้าโหลด
+        window.onload = loadHistory;
+    </script>
+</body>
+</html>

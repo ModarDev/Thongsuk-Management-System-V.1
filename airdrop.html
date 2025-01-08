@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thongsuk Ekamai</title>
+  <link rel="stylesheet" href="css/airdrop.css"> <!-- ลิงก์ไฟล์ CSS -->
+</head>
+<body>
+  <header>
+    <div class="logo-container">
+        <img src="THONGSUK_LOGO.png" alt="Gang Logo" class="logo">
+        <h1>เบิกของ Airdrop </h1>
+      </div>
+  </header>
+
+  <nav class="navbar">
+    <a href="withdraw.html" onclick="showMenu(event, 'withdraw')" class="active">เบิกของแก็ง</a>
+    <a href="" onclick="showMenu(event, 'Inventory')">Inventory Gangs</a>
+    <a href="checkin.html" onclick="showMenu(event, 'checkin')">เช็คชื่อ</a>
+    <a href="finance.html" onclick="showMenu(event, 'finance')">รายรับรายจ่าย</a>
+    <a href="sendmoney.html" onclick="showMenu(event, 'sendmoney')">ส่งเงิน</a>
+    <a href="airdrop.html" onclick="showMenu(event, 'airdrop')">Set Airdrop</a>
+  </nav>
+
+  <main>
+    <div id="withdraw" class="menu-content active">
+      <h2>เบิกของแก็ง</h2>
+      <p>จัดการการเบิกของแก๊งได้ที่นี่</p>
+    </div>
+    <div id="checkin" class="menu-content">
+      <h2>เช็คชื่อ</h2>
+      <p>ตรวจสอบรายชื่อสมาชิกในแก๊ง</p>
+    </div>
+    <div id="finance" class="menu-content">
+      <h2>รายรับรายจ่าย</h2>
+      <p>บันทึกรายรับรายจ่ายของแก๊ง</p>
+    </div>
+    <div id="sendmoney" class="menu-content">
+      <h2>ส่งเงิน</h2>
+      <p>จัดการการส่งเงินระหว่างสมาชิก</p>
+    </div>
+    <div id="airdrop" class="menu-content">
+      <h2>Set Airdrop</h2>
+      <p>ตั้งค่าการแจกเงินในแก๊ง</p>
+    </div>
+  </main>
+
+  <footer>
+    <p>© 2025 ระบบจัดการแก๊งค์</p>
+  </footer>
+
+  <script src="js/scripts.js"></script> <!-- ลิงก์ไฟล์ JavaScript -->
+</body>
+</html>

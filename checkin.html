@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch Payment Notification</title>
+    <link rel="icon" href="img/airdrop.png" type="image/x-icon">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        input, select, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        .entry {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Batch Payment Notification</h2>
+        <div id="entries">
+            <div class="entry">
+                <input type="text" placeholder="Sender's Name" class="senderName" required>
+                <input type="date" class="paymentDate" required>
+                <input type="number" placeholder="Amount" class="amount" required>
+                <textarea placeholder="Details" class="details" rows="4"></textarea>
+                <select class="receiver" required>
+                    <option value="" disabled selected>Select Receiver</option>
+                    <option value="Receiver 1">Receiver 1</option>
+                    <option value="Receiver 2">Receiver 2</option>
+                    <option value="Receiver 3">Receiver 3</option>
+                </select>
+            </div>
+        </div>
+        <button id="addEntry">Add New Entry</button>
+        <button id="submitAll">Submit All Payments</button>
+        <p id="status" style="text-align: center; color: green;"></p>
+    </div>
+
+    <script>
+        const webhookUrl = "https://discordapp.com/api/webhooks/1167939751953825872/--C09j9dRMMFr4zxvoBHpbThtAFTZCmy-qnRnjPL-Ava5ns1TsXimYk2rFHSUgKs7dg8"; // ใส่ URL Webhook ของคุณที่นี่
+        const entriesDiv = document.getElementById('entries');
+        const addEntryButton = document.getElementById('addEntry');
+        const submitAllButton = document.getElementById('submitAll');
+        const statusMessage = document.getElementById('status');
+
+        // เพิ่มฟิลด์สำหรับเพิ่มรายการใหม่
+        addEntryButton.addEventListener('click', () => {
+            const newEntry = document.createElement('div');
+            newEntry.classList.add('entry');
+            newEntry.innerHTML = `
+                <input type="text" placeholder="Sender's Name" class="senderName" required>
+                <input type="date" class="paymentDate" required>
+                <input type="number" placeholder="Amount" class="amount" required>
+                <textarea placeholder="Details" class="details" rows="4"></textarea>
+                <select class="receiver" required>
+                    <option value="" disabled selected>Select Receiver</option>
+                    <option value="Receiver 1">Receiver 1</option>
+                    <option value="Receiver 2">Receiver 2</option>
+                    <option value="Receiver 3">Receiver 3</option>
+                </select>
+            `;
+            entriesDiv.appendChild(newEntry);
+        });
+
+        // ส่งข้อมูลทั้งหมดไปยัง Discord
+        submitAllButton.addEventListener('click', async () => {
+            const entries = document.querySelectorAll('.entry');
+            const messages = [];
+
+            entries.forEach(entry => {
+                const senderName = entry.querySelector('.senderName').value;
+                const paymentDate = entry.querySelector('.paymentDate').value;
+                const amount = parseFloat(entry.querySelector('.amount').value);
+                const details = entry.querySelector('.details').value;
+                const receiver = entry.querySelector('.receiver').value;
+
+                if (senderName && paymentDate && !isNaN(amount) && receiver) {
+                    messages.push(`**Sender:** ${senderName}\n**Date:** ${paymentDate}\n**Amount:** $${amount.toFixed(2)}\n**Details:** ${details}\n**Receiver:** ${receiver}`);
+                }
+            });
+
+            if (messages.length === 0) {
+                statusMessage.textContent = 'No valid entries to submit!';
+                return;
+            }
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ content: messages.join('\n\n---\n\n') }),
+                });
+
+                if (response.ok) {
+                    statusMessage.textContent = 'All payments sent successfully!';
+                    entriesDiv.innerHTML = ''; // ล้างฟอร์มทั้งหมดหลังการส่ง
+                    addEntryButton.click(); // เพิ่มฟอร์มเปล่าใหม่
+                } else {
+                    statusMessage.textContent = 'Failed to send payments.';
+                }
+            } catch (error) {
+                statusMessage.textContent = 'Error occurred while sending payments.';
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+</html>

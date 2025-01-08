@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send Items</title>
+    <link rel="icon" href="img/icon/boxes.png" type="image/x-icon">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        input, select, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        .entry {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #f4f4f4;
+        }
+
+        .history {
+            margin-top: 30px;
+            border-top: 2px solid #ddd;
+            padding-top: 10px;
+        }
+
+        .history ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .history li {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        .linkButton {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+
+        .linkButton:hover {
+            background-color: #218838;
+        }
+
+        #clearHistory {
+            background-color: #dc3545;
+            color: white;
+            margin-top: 20px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #clearHistory:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="linkButton">Go to Another Page</a>
+    <div class="container">
+        <h2>Send Items Notification</h2>
+        <div id="entries">
+            <div class="entry">
+                <input type="text" placeholder="Sender's Name" class="senderName" required>
+                <input type="text" placeholder="Item Name" class="itemName" required>
+                <input type="date" class="shipmentDate" required>
+                <input type="number" placeholder="Quantity" class="quantity" required>
+                <textarea placeholder="Details" class="details" rows="4"></textarea>
+                <select class="receiver" required>
+                    <option value="" disabled selected>Select Receiver</option>
+                    <option value="Receiver 1">Receiver 1</option>
+                    <option value="Receiver 2">Receiver 2</option>
+                    <option value="Receiver 3">Receiver 3</option>
+                </select>
+            </div>
+        </div>
+        <button id="addEntry">Add New Entry</button>
+        <button id="submitAll">Submit All Shipments</button>
+        <p id="status" style="text-align: center; color: green;"></p>
+
+        <div class="history" id="history">
+            <h3>Shipment History</h3>
+            <ul id="shipmentHistoryList"></ul>
+            <button id="clearHistory">Clear Shipment History</button>
+        </div>
+    </div>
+
+    <script>
+        const webhookUrl = "https://discordapp.com/api/webhooks/1168004557691965462/2NtZBpsqn39R1akzPO6tIqaVDK2PtIsmQNMtD9Vu8u-A8XHOs4cJnN9JIh4ZGBF-Fehv"; // Webhook URL
+        const entriesDiv = document.getElementById('entries');
+        const addEntryButton = document.getElementById('addEntry');
+        const submitAllButton = document.getElementById('submitAll');
+        const statusMessage = document.getElementById('status');
+        const shipmentHistoryList = document.getElementById('shipmentHistoryList');
+
+        // ฟังก์ชั่นเพื่อดึงประวัติจาก localStorage
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('shipmentHistory')) || [];
+            shipmentHistoryList.innerHTML = '';
+            history.forEach(entry => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <strong>Sender:</strong> ${entry.senderName} <br>
+                    <strong>Item:</strong> ${entry.itemName} <br>
+                    <strong>Date:</strong> ${entry.shipmentDate} <br>
+                    <strong>Quantity:</strong> ${entry.quantity} <br>
+                    <strong>Receiver:</strong> ${entry.receiver} <br>
+                    <strong>Details:</strong> ${entry.details}
+                `;
+                shipmentHistoryList.appendChild(li);
+            });
+        }
+
+        // เพิ่มฟิลด์สำหรับเพิ่มรายการใหม่
+        addEntryButton.addEventListener('click', () => {
+            const newEntry = document.createElement('div');
+            newEntry.classList.add('entry');
+            newEntry.innerHTML = `
+                <input type="text" placeholder="Sender's Name" class="senderName" required>
+                <input type="text" placeholder="Item Name" class="itemName" required>
+                <input type="date" class="shipmentDate" required>
+                <input type="number" placeholder="Quantity" class="quantity" required>
+                <textarea placeholder="Details" class="details" rows="4"></textarea>
+                <select class="receiver" required>
+                    <option value="" disabled selected>Select Receiver</option>
+                    <option value="Receiver 1">Receiver 1</option>
+                    <option value="Receiver 2">Receiver 2</option>
+                    <option value="Receiver 3">Receiver 3</option>
+                </select>
+            `;
+            entriesDiv.appendChild(newEntry);
+        });
+
+        // ส่งข้อมูลทั้งหมดไปยัง Discord และบันทึกใน localStorage
+        submitAllButton.addEventListener('click', async () => {
+            const entries = document.querySelectorAll('.entry');
+            const messages = [];
+            const history = JSON.parse(localStorage.getItem('shipmentHistory')) || [];
+
+            entries.forEach(entry => {
+                const senderName = entry.querySelector('.senderName').value;
+                const itemName = entry.querySelector('.itemName').value;
+                const shipmentDate = entry.querySelector('.shipmentDate').value;
+                const quantity = parseInt(entry.querySelector('.quantity').value);
+                const details = entry.querySelector('.details').value;
+                const receiver = entry.querySelector('.receiver').value;
+
+                if (senderName && itemName && shipmentDate && !isNaN(quantity) && receiver) {
+                    // สร้างข้อความสำหรับส่งไปยัง Discord
+                    messages.push(`**Sender:** ${senderName}\n**Item:** ${itemName}\n**Date:** ${shipmentDate}\n**Quantity:** ${quantity}\n**Details:** ${details}\n**Receiver:** ${receiver}`);
+
+                    // บันทึกข้อมูลใน localStorage
+                    history.push({ senderName, itemName, shipmentDate, quantity, details, receiver });
+                }
+            });
+
+            if (messages.length === 0) {
+                statusMessage.textContent = 'No valid entries to submit!';
+                return;
+            }
+
+            try {
+                // ส่งข้อมูลไปยัง Discord
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ content: messages.join('\n\n---\n\n') }),
+                });
+
+                if (response.ok) {
+                    // บันทึกข้อมูลลง localStorage
+                    localStorage.setItem('shipmentHistory', JSON.stringify(history));
+                    statusMessage.textContent = 'All shipments sent successfully!';
+                    entriesDiv.innerHTML = ''; // ล้างฟอร์มทั้งหมดหลังการส่ง
+                    addEntryButton.click(); // เพิ่มฟอร์มเปล่าใหม่
+                    loadHistory(); // โหลดประวัติใหม่
+                } else {
+                    statusMessage.textContent = 'Failed to send shipments.';
+                }
+            } catch (error) {
+                statusMessage.textContent = 'Error occurred while sending shipments.';
+                console.error(error);
+            }
+        });
+
+        // ฟังก์ชันลบประวัติ
+        document.getElementById('clearHistory').addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear all shipment history?')) {
+                localStorage.removeItem('shipmentHistory'); // ลบข้อมูลจาก localStorage
+                loadHistory(); // รีเฟรชประวัติการส่ง
+                statusMessage.textContent = 'Shipment history cleared!';
+            }
+        });
+
+        // โหลดประวัติเมื่อหน้าโหลด
+        window.onload = loadHistory;
+    </script>
+</body>
+</html>

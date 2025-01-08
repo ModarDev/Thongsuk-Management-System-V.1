@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Management</title>
+    <link rel="icon" href="img/icon/group.png" type="image/x-icon">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        .member-list {
+            margin-top: 20px;
+        }
+
+        .member-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f4f4f4;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .member-item span {
+            flex: 1;
+        }
+
+        .member-item button {
+            width: auto;
+            margin: 0 5px;
+        }
+
+        .linkButton {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+
+        .linkButton:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="linkButton">Go to Another Page</a>
+        <h2>Member Management</h2>
+        <input type="text" id="memberName" placeholder="Enter member name">
+        <input type="text" id="memberPhone" placeholder="Enter member phone number">
+        <button id="addMember">Add Member</button>
+
+        <div class="member-list" id="memberList"></div>
+    </div>
+
+    <script>
+        const webhookUrl = "https://discordapp.com/api/webhooks/1326608390214123593/JZOhTGO9j0AKdy9EO9464LiY0F3MRDhC6nBaDes_sCdybDkmP2LM_Aqm8OtIUJPdXl8K"; // Replace with your webhook URL
+        const memberListDiv = document.getElementById('memberList');
+        const memberNameInput = document.getElementById('memberName');
+        const memberPhoneInput = document.getElementById('memberPhone');
+        const addMemberButton = document.getElementById('addMember');
+
+        function loadMembers() {
+            const members = JSON.parse(localStorage.getItem('members')) || [];
+            memberListDiv.innerHTML = '';
+            members.forEach((member, index) => {
+                const memberItem = document.createElement('div');
+                memberItem.classList.add('member-item');
+
+                memberItem.innerHTML = `
+                    <span>${member.name} (${member.phone})</span>
+                    <button onclick="editMember(${index})">Edit</button>
+                    <button onclick="deleteMember(${index})">Delete</button>
+                `;
+                memberListDiv.appendChild(memberItem);
+            });
+        }
+
+        function addMember() {
+            const memberName = memberNameInput.value.trim();
+            const memberPhone = memberPhoneInput.value.trim();
+            if (!memberName || !memberPhone) return alert('Please enter both name and phone number.');
+
+            const members = JSON.parse(localStorage.getItem('members')) || [];
+            members.push({ name: memberName, phone: memberPhone });
+            localStorage.setItem('members', JSON.stringify(members));
+
+            notifyDiscord(`New member added: ${memberName}, Phone: ${memberPhone}`);
+
+            memberNameInput.value = '';
+            memberPhoneInput.value = '';
+            loadMembers();
+        }
+
+        function editMember(index) {
+            const members = JSON.parse(localStorage.getItem('members')) || [];
+            const member = members[index];
+            const newName = prompt('Edit member name:', member.name);
+            const newPhone = prompt('Edit member phone:', member.phone);
+            if (newName !== null && newPhone !== null) {
+                members[index] = { name: newName.trim(), phone: newPhone.trim() };
+                localStorage.setItem('members', JSON.stringify(members));
+                notifyDiscord(`Member updated: ${newName}, Phone: ${newPhone}`);
+                loadMembers();
+            }
+        }
+
+        function deleteMember(index) {
+            const members = JSON.parse(localStorage.getItem('members')) || [];
+            const deletedMember = members.splice(index, 1);
+            localStorage.setItem('members', JSON.stringify(members));
+
+            notifyDiscord(`Member removed: ${deletedMember[0].name}, Phone: ${deletedMember[0].phone}`);
+            loadMembers();
+        }
+
+        async function notifyDiscord(message) {
+            try {
+                await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ content: message }),
+                });
+            } catch (error) {
+                console.error('Error sending to Discord:', error);
+            }
+        }
+
+        addMemberButton.addEventListener('click', addMember);
+        window.onload = loadMembers;
+    </script>
+</body>
+</html>
